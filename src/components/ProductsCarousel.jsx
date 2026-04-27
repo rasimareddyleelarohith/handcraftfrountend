@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/currency';
 
 const ProductsCarousel = ({ products, onQuickView }) => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -54,7 +55,7 @@ const ProductsCarousel = ({ products, onQuickView }) => {
             <p className="carousel-text">{activeProduct.description}</p>
             <p className="carousel-notes">{activeProduct.culturalNotes}</p>
             <div className="carousel-footer">
-              <span className="carousel-price">${activeProduct.price}</span>
+              <span className="carousel-price">{formatPrice(activeProduct.price)}</span>
               <div className="carousel-actions">
                 <button type="button" className="carousel-btn carousel-secondary-btn" onClick={() => onQuickView(activeProduct)}>
                   Quick View

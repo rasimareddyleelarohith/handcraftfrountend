@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
+import { formatPrice } from '../../utils/currency';
 
 const QuickViewModal = ({ product, onClose }) => {
   const { addToCart } = useCart();
@@ -27,7 +28,7 @@ const QuickViewModal = ({ product, onClose }) => {
           </div>
           
           <div className="price-section">
-            <span className="price">RS{product.price}</span>
+            <span className="price">{formatPrice(product.price)}</span>
             <button className="add-to-cart-btn" onClick={() => { addToCart(product); onClose(); }}>
               Add to Cart
             </button>

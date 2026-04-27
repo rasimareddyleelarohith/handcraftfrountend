@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import '../styles/PaymentPage.css';
+import { formatPrice } from '../utils/currency';
 
 const PaymentPage = ({ onBack }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -87,7 +88,7 @@ const PaymentPage = ({ onBack }) => {
 
           <div className="checkout-summary">
             <span>Total Amount</span>
-            <strong>${cartTotal.toFixed(2)}</strong>
+            <strong>{formatPrice(cartTotal)}</strong>
           </div>
 
           <div className="checkout-steps">
@@ -233,7 +234,7 @@ const PaymentPage = ({ onBack }) => {
                       <p className="checkout-order-item-artisan">By {item.artisan}</p>
                       <div className="checkout-order-item-meta">
                         <span>Qty: {item.quantity}</span>
-                        <strong>${(item.price * item.quantity).toFixed(2)}</strong>
+                        <strong>{formatPrice(item.price * item.quantity)}</strong>
                       </div>
                     </div>
                   </article>

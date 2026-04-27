@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCart } from '../../context/CartContext';
+import { formatPrice } from '../../utils/currency';
 
 const CartModal = ({ isOpen, onClose, onCheckout }) => {
   const { cart, cartTotal, updateQuantity, removeFromCart } = useCart();
@@ -24,7 +25,7 @@ const CartModal = ({ isOpen, onClose, onCheckout }) => {
                   <img src={item.image} alt={item.name} className="cart-item-image" />
                   <div className="cart-item-details">
                     <div className="cart-item-name">{item.name}</div>
-                    <div className="cart-item-price">${item.price}</div>
+                    <div className="cart-item-price">{formatPrice(item.price)}</div>
                     <div className="cart-item-quantity">
                       <button className="quantity-btn" onClick={() => updateQuantity(item.id, -1)}>-</button>
                       <span>{item.quantity}</span>
@@ -39,7 +40,7 @@ const CartModal = ({ isOpen, onClose, onCheckout }) => {
 
           {cart.length > 0 && (
             <>
-              <div className="cart-total">Total: ${cartTotal.toFixed(2)}</div>
+              <div className="cart-total">Total: {formatPrice(cartTotal)}</div>
               <button
                 className="checkout-btn"
                 onClick={() => {

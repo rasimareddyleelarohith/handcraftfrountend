@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orders } from '../data/orders';
 import '../styles/MyOrdersPage.css';
+import { formatPrice } from '../utils/currency';
 
 const formatDate = (value) => new Date(value).toLocaleDateString();
 const getStatusClassName = (status) => status.toLowerCase().replace(/\s+/g, '-');
@@ -107,7 +108,7 @@ const MyOrdersPage = () => {
                         <p className="order-product-description">{item.product.description}</p>
                         <div className="order-product-meta">
                           <span>Qty: {item.quantity}</span>
-                          <span>${item.product.price}</span>
+                          <span>{formatPrice(item.product.price)}</span>
                         </div>
                       </div>
                     </div>

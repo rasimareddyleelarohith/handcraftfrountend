@@ -5,7 +5,7 @@ export const products = [
     category: "Paintings",
     artisan: "Rajesh Warli",
     price: 89.99,
-    image: "https://www.memeraki.com/cdn/shop/files/Krishna-with-Cows-Kalamkari-Painting-by-Siva-Reddy-2682_1024x.png?v=1724158139",
+    image: "https://5.imimg.com/data5/SV/MF/BJ/SELLER-71881508/b056-pic4.jpg",
     description: "Authentic Warli tribal painting from Maharashtra",
     culturalNotes: "Warli art is one of the oldest forms of Indian folk art",
     stock: 5,

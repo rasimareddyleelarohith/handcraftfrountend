@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/currency';
 
 const ProductCard = ({ product, onQuickView }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -27,7 +28,7 @@ const ProductCard = ({ product, onQuickView }) => {
           <span className="rating-number">({product.rating})</span>
         </div>
 
-        <div className="product-price">${product.price}</div>
+        <div className="product-price">{formatPrice(product.price)}</div>
 
         <div className="product-actions">
           <button className="add-to-cart-btn" onClick={() => addToCart(product)} disabled={product.stock === 0}>

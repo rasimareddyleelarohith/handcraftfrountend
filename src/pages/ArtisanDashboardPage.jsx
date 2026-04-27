@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import API from '../api/API';
-import { products } from '../data/products';
-import { orders } from '../data/orders';
+import API, { initialArtisanOrders } from '../api/API';
 import '../styles/ArtisanDashboardPage.css';
+import { fallbackProductImage, normalizeProduct } from '../utils/productUtils';
 
 const defaultListingForm = {
   name: '',
@@ -10,6 +9,7 @@ const defaultListingForm = {
   stock: '',
   price: '',
   description: ''
+  
 };
 
 const initialCustomerMessages = [
@@ -27,41 +27,8 @@ const initialCustomerMessages = [
   }
 ];
 
-const initialArtisanOrders = orders.flatMap((order) =>
-  order.items.map((item) => ({
-    orderId: order.id,
-    status: order.status,
-    placedAt: order.placedAt,
-    productId: item.productId,
-    product: item.product,
-    quantity: item.quantity
-  }))
-);
-
-const fallbackImage = products[0].image;
-
-const formatProduct = (product) => ({
-  ...product,
-  id: product.id,
-  name: product.name || product.productname || '',
-  productname: product.productname || product.name || '',
-  category: product.category || '',
-  artisan: product.artisan || 'Your Artisan Studio',
-  stock: Number(product.stock ?? product.quantity ?? 0),
-  quantity: Number(product.quantity ?? product.stock ?? 0),
-  price: Number(product.price ?? 0),
-  image: product.image || fallbackImage,
-  description: product.description || '',
-  culturalNotes: product.culturalNotes || 'Updated by artisan dashboard',
-  rating: Number(product.rating ?? 0)
-});
-
-const ArtisanDashboardPage = () => {
-  const [artisanProducts, setArtisanProducts] = useState(() => {
-    const savedProducts = localStorage.getItem('artisanProducts');
-
-    return savedProducts ? JSON.parse(savedProducts).map(formatProduct) : products.slice(0, 4).map(formatProduct);
-  });
+function ArtisanDashboardPage() {
+  const [artisanProducts, setArtisanProducts] = useState([]);
   const [listingForm, setListingForm] = useState(defaultListingForm);
   const [editingProductId, setEditingProductId] = useState(null);
   const [listingNotice, setListingNotice] = useState('');
@@ -81,9 +48,9 @@ const ArtisanDashboardPage = () => {
 
       try {
         const response = await API.get('/Product/all');
-        const nextProducts = response.data.length
-          ? response.data.map(formatProduct)
-          : products.slice(0, 4).map(formatProduct);
+        const nextProducts = Array.isArray(response.data)
+          ? response.data.map(normalizeProduct)
+          : [];
 
         if (isMounted) {
           setArtisanProducts(nextProducts);
@@ -91,7 +58,7 @@ const ArtisanDashboardPage = () => {
         }
       } catch {
         if (isMounted) {
-          setListingNotice('Showing saved product listings until the backend is available.');
+          setListingNotice('Unable to load products from the database. Start the backend to manage listings.');
         }
       } finally {
         if (isMounted) {
@@ -107,18 +74,14 @@ const ArtisanDashboardPage = () => {
     };
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('artisanProducts', JSON.stringify(artisanProducts));
-  }, [artisanProducts]);
-
-  const handleListingFieldChange = (event) => {
+  function handleListingFieldChange(event) {
     const { name, value } = event.target;
 
     setListingForm((current) => ({
       ...current,
       [name]: value
     }));
-  };
+  }
 
   const resetListingForm = () => {
     setListingForm(defaultListingForm);
@@ -147,8 +110,7 @@ const ArtisanDashboardPage = () => {
 
     try {
       await API.delete(`/Product/${product.id}`);
-      setArtisanProducts((currentProducts) =>
-        currentProducts.filter((currentProduct) => currentProduct.id !== product.id)
+      setArtisanProducts((currentProducts) => currentProducts.filter((currentProduct) => currentProduct.id !== product.id)
       );
 
       if (editingProductId === product.id) {
@@ -157,36 +119,26 @@ const ArtisanDashboardPage = () => {
 
       setListingNotice(`${product.name} deleted successfully.`);
     } catch {
-      setArtisanProducts((currentProducts) =>
-        currentProducts.filter((currentProduct) => currentProduct.id !== product.id)
-      );
-
-      if (editingProductId === product.id) {
-        resetListingForm();
-      }
-
-      setListingNotice(`${product.name} removed locally. Start the backend to sync product changes.`);
+      setListingNotice(`Unable to delete ${product.name}. Please check the backend connection.`);
     } finally {
       setIsListingLoading(false);
     }
   };
 
   const handleManageAllOrdersClick = () => {
-    setArtisanOrders((currentOrders) =>
-      currentOrders.map((order) => ({
-        ...order,
-        status: order.status === 'Delivered' ? order.status : 'Preparing Order'
-      }))
+    setArtisanOrders((currentOrders) => currentOrders.map((order) => ({
+      ...order,
+      status: order.status === 'Delivered' ? order.status : 'Preparing Order'
+    }))
     );
     setOrdersNotice('Active orders marked as Preparing Order.');
   };
 
   const handleReplyMessagesClick = () => {
-    setMessages((currentMessages) =>
-      currentMessages.map((message) => ({
-        ...message,
-        status: 'Replied'
-      }))
+    setMessages((currentMessages) => currentMessages.map((message) => ({
+      ...message,
+      status: 'Replied'
+    }))
     );
     setMessagesNotice('Customer messages marked as replied.');
   };
@@ -205,7 +157,7 @@ const ArtisanDashboardPage = () => {
       price: Number(listingForm.price),
       description: listingForm.description.trim(),
       artisan: currentProduct?.artisan || 'Your Artisan Studio',
-      image: currentProduct?.image || fallbackImage,
+      image: currentProduct?.image || fallbackProductImage,
       culturalNotes: currentProduct?.culturalNotes || 'Updated by artisan dashboard',
       rating: currentProduct?.rating || 0
     };
@@ -215,19 +167,17 @@ const ArtisanDashboardPage = () => {
     try {
       if (isEditingListing) {
         const response = await API.put(`/Product/${editingProductId}`, nextProductDetails);
-        const updatedProduct = formatProduct(response.data);
+        const updatedProduct = normalizeProduct(response.data);
 
-        setArtisanProducts((currentProducts) =>
-          currentProducts.map((product) =>
-            product.id === editingProductId
-              ? { ...product, ...updatedProduct }
-              : product
-          )
+        setArtisanProducts((currentProducts) => currentProducts.map((product) => product.id === editingProductId
+          ? { ...product, ...updatedProduct }
+          : product
+        )
         );
         setListingNotice('Product listing updated successfully.');
       } else {
         const response = await API.post('/Product', nextProductDetails);
-        const createdProduct = formatProduct(response.data);
+        const createdProduct = normalizeProduct(response.data);
 
         setArtisanProducts((currentProducts) => [...currentProducts, createdProduct]);
         setListingNotice('New product listing added successfully.');
@@ -235,23 +185,7 @@ const ArtisanDashboardPage = () => {
 
       resetListingForm();
     } catch {
-      setArtisanProducts((currentProducts) =>
-        isEditingListing
-          ? currentProducts.map((product) =>
-              product.id === editingProductId
-                ? { ...product, ...nextProductDetails }
-                : product
-            )
-          : [
-              ...currentProducts,
-              formatProduct({
-                ...nextProductDetails,
-                id: Date.now()
-              })
-            ]
-      );
-      setListingNotice('Saved locally. Start the backend to sync this listing.');
-      resetListingForm();
+      setListingNotice('Unable to save this product to the database. Please check the backend connection.');
     } finally {
       setIsListingLoading(false);
     }
@@ -277,8 +211,7 @@ const ArtisanDashboardPage = () => {
                     value={listingForm.name}
                     onChange={handleListingFieldChange}
                     placeholder="Handwoven basket"
-                    required
-                  />
+                    required />
                 </label>
 
                 <label>
@@ -289,8 +222,7 @@ const ArtisanDashboardPage = () => {
                     value={listingForm.category}
                     onChange={handleListingFieldChange}
                     placeholder="Textiles"
-                    required
-                  />
+                    required />
                 </label>
 
                 <label>
@@ -302,8 +234,7 @@ const ArtisanDashboardPage = () => {
                     onChange={handleListingFieldChange}
                     min="0"
                     placeholder="5"
-                    required
-                  />
+                    required />
                 </label>
 
                 <label>
@@ -316,8 +247,7 @@ const ArtisanDashboardPage = () => {
                     min="0"
                     step="0.01"
                     placeholder="89.99"
-                    required
-                  />
+                    required />
                 </label>
 
                 <label className="artisan-form-wide">
@@ -328,8 +258,7 @@ const ArtisanDashboardPage = () => {
                     onChange={handleListingFieldChange}
                     placeholder="Short product details for customers"
                     rows="3"
-                    required
-                  />
+                    required />
                 </label>
               </div>
 
@@ -360,27 +289,33 @@ const ArtisanDashboardPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {artisanProducts.map((product) => (
-                    <tr key={product.id}>
-                      <td>{product.name}</td>
-                      <td>{product.category}</td>
-                      <td>{product.stock}</td>
-                      <td>Rs {product.price}</td>
-                      <td>
-                        <div className="artisan-table-actions">
-                          <button type="button" onClick={() => handleEditProductClick(product)}>Update</button>
-                          <button
-                            type="button"
-                            className="artisan-delete-button"
-                            disabled={isListingLoading}
-                            onClick={() => handleDeleteProductClick(product)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                  {artisanProducts.length > 0 ? (
+                    artisanProducts.map((product) => (
+                      <tr key={product.id}>
+                        <td>{product.name}</td>
+                        <td>{product.category}</td>
+                        <td>{product.stock}</td>
+                        <td>Rs {product.price}</td>
+                        <td>
+                          <div className="artisan-table-actions">
+                            <button type="button" onClick={() => handleEditProductClick(product)}>Update</button>
+                            <button
+                              type="button"
+                              className="artisan-delete-button"
+                              disabled={isListingLoading}
+                              onClick={() => handleDeleteProductClick(product)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5">No products found in the database yet.</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -429,6 +364,6 @@ const ArtisanDashboardPage = () => {
       </div>
     </section>
   );
-};
+}
 
 export default ArtisanDashboardPage;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { products } from '../data/products';
 import '../styles/AdminPage.css';
+import { formatPrice } from '../utils/currency';
 
 const users = [
   { id: 'U-1001', name: 'Anita Verma', role: 'Customer', status: 'Active' },
@@ -10,9 +11,9 @@ const users = [
 ];
 
 const orders = [
-  { id: 'ORD-9081', customer: 'Anita Verma', payment: 'Paid', amount: '$89.99', issue: 'None' },
-  { id: 'ORD-9082', customer: 'Vikram Das', payment: 'Failed', amount: '$249.99', issue: 'Retry Needed' },
-  { id: 'ORD-9083', customer: 'Kiran Rao', payment: 'Refunded', amount: '$129.99', issue: 'Refund Completed' }
+  { id: 'ORD-9081', customer: 'Anita Verma', payment: 'Paid', amount: 89.99, issue: 'None' },
+  { id: 'ORD-9082', customer: 'Vikram Das', payment: 'Failed', amount: 249.99, issue: 'Retry Needed' },
+  { id: 'ORD-9083', customer: 'Kiran Rao', payment: 'Refunded', amount: 129.99, issue: 'Refund Completed' }
 ];
 
 const feedbackItems = [
@@ -43,7 +44,7 @@ const AdminPage = () => {
     .join(', ');
   const revenue = orders
     .filter((order) => order.payment === 'Paid')
-    .reduce((sum, order) => sum + Number(order.amount.replace('$', '')), 0)
+    .reduce((sum, order) => sum + Number(order.amount), 0)
     .toFixed(2);
 
   const stats = [
@@ -51,7 +52,7 @@ const AdminPage = () => {
     { label: 'Total Artisans', value: String(totalArtisans) },
     { label: 'Total Products', value: String(products.length) },
     { label: 'Total Orders', value: String(orders.length) },
-    { label: 'Revenue Generated', value: `$${revenue}` },
+    { label: 'Revenue Generated', value: formatPrice(revenue) },
     { label: 'Top-selling Products', value: topProducts }
   ];
 
@@ -160,7 +161,7 @@ const AdminPage = () => {
                     <td>{order.id}</td>
                     <td>{order.customer}</td>
                     <td>{order.payment}</td>
-                    <td>{order.amount}</td>
+                    <td>{formatPrice(order.amount)}</td>
                     <td className="admin-actions">
                       <button type="button">View History</button>
                       <button type="button">Refund</button>
