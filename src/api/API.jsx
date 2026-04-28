@@ -1,7 +1,8 @@
 import axios from "axios";
 import { orders } from "../data/orders";
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
+const apiBaseUrl = (configuredApiUrl || (import.meta.env.DEV ? "/api" : "")).replace(/\/$/, "");
 
 const API = axios.create({
   baseURL: apiBaseUrl,
@@ -26,6 +27,16 @@ API.interceptors.response.use(
   (error) => {
     if (!error.response) {
       return Promise.reject(new Error("Unable to reach the backend. Make sure the Spring server is running on port 8080."));
+    }
+
+    if (
+      !configuredApiUrl &&
+      !import.meta.env.DEV &&
+      error.response.status === 405
+    ) {
+      return Promise.reject(
+        new Error("Backend API is not configured for production. Set VITE_API_URL to your deployed Spring backend URL before redeploying.")
+      );
     }
 
     return Promise.reject(error);
