@@ -1,7 +1,7 @@
-import React from 'react';
-import { products } from '../data/products';
+import React, { useEffect, useState } from 'react';
 import '../styles/AdminPage.css';
 import { formatPrice } from '../utils/currency';
+import { fetchProductsStrict } from '../api/products';
 
 const users = [
   { id: 'U-1001', name: 'Anita Verma', role: 'Customer', status: 'Active' },
@@ -35,6 +35,37 @@ const issues = [
 ];
 
 const AdminPage = () => {
+  const [products, setProducts] = useState([]);
+  const [productsNotice, setProductsNotice] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      try {
+        const nextProducts = await fetchProductsStrict();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setProducts(nextProducts);
+        setProductsNotice('');
+      } catch {
+        if (isMounted) {
+          setProducts([]);
+          setProductsNotice('Unable to load products from the backend right now.');
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const totalArtisans = users.filter((user) => user.role === 'Artisan').length;
   const topProducts = products
     .slice()
@@ -106,6 +137,7 @@ const AdminPage = () => {
 
         <article className="admin-panel-card">
           <h2>Product Management</h2>
+          {productsNotice ? <p className="artisan-listing-notice">{productsNotice}</p> : null}
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
@@ -118,25 +150,31 @@ const AdminPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td>
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="admin-product-image"
-                      />
-                    </td>
-                    <td>{product.name}</td>
-                    <td>{product.category}</td>
-                    <td>{product.artisan}</td>
-                    <td className="admin-actions">
-                      <button type="button">Approve Listing</button>
-                      <button type="button">Edit</button>
-                      <button type="button">Remove</button>
-                    </td>
+                {products.length > 0 ? (
+                  products.map((product) => (
+                    <tr key={product.id}>
+                      <td>
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="admin-product-image"
+                        />
+                      </td>
+                      <td>{product.name}</td>
+                      <td>{product.category}</td>
+                      <td>{product.artisan}</td>
+                      <td className="admin-actions">
+                        <button type="button">Approve Listing</button>
+                        <button type="button">Edit</button>
+                        <button type="button">Remove</button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5">No products available yet.</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

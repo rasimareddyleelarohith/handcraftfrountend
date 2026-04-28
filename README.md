@@ -1,16 +1,34 @@
-# React + Vite
+# Handcraft Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend for the Handcraft marketplace.
 
-Currently, two official plugins are available:
+## Backend connection
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The frontend is set up to talk to the Spring backend in two ways:
 
-## React Compiler
+- Development: requests to `/api/*` are proxied by Vite to `http://localhost:8080`
+- Production: set `VITE_API_URL` to the deployed backend URL
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Copy `.env.example` to `.env` if you want to override the default backend target locally.
 
-## Expanding the ESLint configuration
+## Local run
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Start the Spring backend from `../handcraft_backend` on port `8080`
+2. Install frontend dependencies:
+
+```bash
+npm install
+```
+
+3. Start the frontend:
+
+```bash
+npm run dev
+```
+
+## Current live integrations
+
+- Login and registration use the backend `/user` endpoints
+- Home and products pages load products from `/Product/all`
+- Artisan dashboard creates, updates, deletes, and lists products from the backend
+- Admin dashboard now reads product listings from the backend

@@ -4,7 +4,7 @@ import './App.css';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { products } from './data/products';
-import API from './api/API';
+import { fetchProducts } from './api/products';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ProductsGrid from './components/ProductsGrid';
@@ -88,13 +88,13 @@ function AppShell() {
 
     const loadProducts = async () => {
       try {
-        const response = await API.get('/Product/all');
+        const nextProducts = await fetchProducts();
 
-        if (!isMounted || !Array.isArray(response.data)) {
+        if (!isMounted) {
           return;
         }
 
-        setMarketplaceProducts(response.data.map(normalizeProduct));
+        setMarketplaceProducts(nextProducts);
       } catch {
         if (isMounted) {
           setMarketplaceProducts(products.map(normalizeProduct));
