@@ -83,5 +83,17 @@ export const products = [
     culturalNotes: "Represents the rich weaving traditions of Andhra Pradesh.",
     stock: 5,
     rating: 4.8
+  },
+  {
+    id: 8,
+    name: "Hand-Carved Wooden Jewelry Box",
+    category: "Home Decor",
+    artisan: "Woodcraft Heritage Studio",
+    price: 109.99,
+    image: "https://i.etsystatic.com/40670117/r/il/4a404d/5547499539/il_1080xN.5547499539_mv3k.jpg",
+    description: "Decorative wooden jewelry box with hand-carved floral detailing and artisan craftsmanship.",
+    culturalNotes: "Celebrates traditional wood carving techniques used to create heirloom keepsake pieces.",
+    stock: 4,
+    rating: 4.9
   }
 ];
